@@ -2,397 +2,148 @@
 
 import Container from "@/components/Container";
 import Header from "@/components/Header";
-import { useCart } from "@/contexts/cartContext";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { StepsIndicator } from "@/components/ui/steps-indicator";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { getCurrentUser, isAuthenticated } from "@/lib/mockAuth";
+import { ArrowLeft } from "lucide-react";
+import { isAuthenticated } from "@/lib/mockAuth";
+import { CustomerDataStep } from "@/components/checkout/CustomerDataStep";
+import { PaymentMethodStep } from "@/components/checkout/PaymentMethodStep";
+import { ReviewStep } from "@/components/checkout/ReviewStep";
+import { ProcessingStep } from "@/components/checkout/ProcessingStep";
+import { ResultStep } from "@/components/checkout/ResultStep";
 
 export default function Checkout() {
-    const [openAddCreditCard, setOpenAddCreditCard] = useState(false);
-    const [savedCards, setSavedCards] = useState<any[]>([]);
-    const [currentCard, setCurrentCard] = useState<any>(null);
-    const [saveCard, setSaveCard] = useState(true);
-    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
-    const [notification, setNotification] = useState<{
-        type: 'success' | 'error' | 'warning';
-        message: string;
-        show: boolean;
-    }>({ type: 'success', message: '', show: false });
+    const [currentStep, setCurrentStep] = useState('dados');
+    const [checkoutData, setCheckoutData] = useState({
+        customerData: null,
+        paymentMethod: null,
+        reviewData: null,
+        orderData: null,
+        paymentResult: null
+    });
 
     const router = useRouter();
-
-    const { cartItems, clearCart } = useCart();
-    const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-
-    const showNotification = (type: 'success' | 'error' | 'warning', message: string) => {
-        setNotification({ type, message, show: true });
-        setTimeout(() => {
-            setNotification(prev => ({ ...prev, show: false }));
-        }, 4000);
-    };
-
     useEffect(() => {
-
         const checkAuth = isAuthenticated();
         if (!checkAuth) {
             router.push('/login');
         }
+    }, [router]);
 
-        const currentUser = getCurrentUser();
-        if (currentUser) {
-            const userCardsKey = `savedCards_${currentUser.id}`;
-            const saved = localStorage.getItem(userCardsKey);
-            if (saved) {
-                setSavedCards(JSON.parse(saved));
-            }
+    const steps = [
+        {
+            id: 'dados',
+            title: 'Dados',
+            description: 'Informações do comprador',
+            status: (currentStep === 'dados' ? 'current' : 
+                   ['payment', 'review', 'processing', 'result'].includes(currentStep) ? 'completed' : 'pending') as 'current' | 'completed' | 'pending'
+        },
+        {
+            id: 'payment',
+            title: 'Pagamento',
+            description: 'Método de pagamento',
+            status: (currentStep === 'payment' ? 'current' : 
+                   ['review', 'processing', 'result'].includes(currentStep) ? 'completed' : 'pending') as 'current' | 'completed' | 'pending'
+        },
+        {
+            id: 'review',
+            title: 'Revisão',
+            description: 'Confirmação final',
+            status: (currentStep === 'review' ? 'current' : 
+                   ['processing', 'result'].includes(currentStep) ? 'completed' : 'pending') as 'current' | 'completed' | 'pending'
+        },
+        {
+            id: 'processing',
+            title: 'Processando',
+            description: 'Aguardando pagamento',
+            status: (currentStep === 'processing' ? 'current' : 
+                   currentStep === 'result' ? 'completed' : 'pending') as 'current' | 'completed' | 'pending'
+        },
+        {
+            id: 'result',
+            title: 'Resultado',
+            description: 'Finalização',
+            status: (currentStep === 'result' ? 'current' : 'pending') as 'current' | 'completed' | 'pending'
         }
-    }, []);
+    ];
 
-    const handleAddCard = (cardData: any) => {
-        if (!cardData.number || !cardData.expiry || !cardData.cvv || !cardData.name) {
-            showNotification('error', 'Por favor, preencha todos os campos');
-            return;
+    const handleNextStep = (stepData: any) => {
+        setCheckoutData(prev => ({ ...prev, ...stepData }));
+        
+        const stepOrder = ['dados', 'payment', 'review', 'processing', 'result'];
+        const currentIndex = stepOrder.indexOf(currentStep);
+        if (currentIndex < stepOrder.length - 1) {
+            setCurrentStep(stepOrder[currentIndex + 1]);
         }
+    };
 
-        const newCard = {
-            id: Date.now().toString(),
-            ...cardData,
-            last4: cardData.number.slice(-4)
-        };
-
-        setCurrentCard(newCard);
-        setOpenAddCreditCard(false);
-
-        if (saveCard) {
-            const currentUser = getCurrentUser();
-            if (currentUser) {
-                const updatedCards = [...savedCards, newCard];
-                setSavedCards(updatedCards);
-                const userCardsKey = `savedCards_${currentUser.id}`;
-                localStorage.setItem(userCardsKey, JSON.stringify(updatedCards));
-                showNotification('success', 'Cartão adicionado e salvo com sucesso!');
-            }
-        } else {
-            showNotification('success', 'Cartão adicionado com sucesso!');
+    const handlePrevStep = () => {
+        const stepOrder = ['dados', 'payment', 'review', 'processing', 'result'];
+        const currentIndex = stepOrder.indexOf(currentStep);
+        if (currentIndex > 0) {
+            setCurrentStep(stepOrder[currentIndex - 1]);
         }
     };
 
 
-    const handleFinalizePurchase = () => {
-        if (!selectedPaymentMethod) {
-            showNotification('warning', 'Por favor, selecione um método de pagamento');
-            return;
+    const renderCurrentStep = () => {
+        switch (currentStep) {
+            case 'dados':
+                return <CustomerDataStep onNext={handleNextStep} />;
+            case 'payment':
+                return <PaymentMethodStep onNext={handleNextStep} onPrev={handlePrevStep} />;
+            case 'review':
+                return <ReviewStep 
+                    onNext={handleNextStep} 
+                    onPrev={handlePrevStep}
+                    customerData={checkoutData.customerData}
+                    paymentMethod={checkoutData.paymentMethod}
+                />;
+            case 'processing':
+                return <ProcessingStep 
+                    onNext={handleNextStep}
+                    paymentMethod={checkoutData.paymentMethod}
+                    orderData={checkoutData.orderData}
+                />;
+            case 'result':
+                return <ResultStep 
+                    paymentResult={checkoutData.paymentResult}
+                    orderData={checkoutData.orderData}
+                />;
+            default:
+                return <CustomerDataStep onNext={handleNextStep} />;
         }
-
-        const isCardPayment = selectedPaymentMethod.includes('card') ||
-            selectedPaymentMethod.includes('saved-') ||
-            selectedPaymentMethod === 'credit';
-
-        if (isCardPayment) {
-            if (!currentCard && !savedCards.some(card => selectedPaymentMethod === `saved-${card.id}`)) {
-                showNotification('warning', 'Por favor, adicione um cartão de crédito');
-                return;
-            }
-        }
-        clearCart();
-        showNotification('success', 'Compra finalizada com sucesso!');
-        setCurrentCard(null);
-        setTimeout(() => {
-            router.push('/');
-        }, 2000);
     };
-
-
-    const CardResume = () => {
-        return (
-            <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <h1 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                    <span className="w-2 h-8 bg-blue-500 rounded-full mr-3"></span>
-                    Resumo do Pedido
-                </h1>
-                <div className="space-y-6">
-                    <div className="space-y-4">
-                        {cartItems.map((item) => (
-                            <div key={item.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-100 hover:bg-gray-100 transition-colors">
-                                <div className="flex-1">
-                                    <div className="font-semibold text-gray-800">{item.name}</div>
-                                    <div className="text-sm text-gray-500 mt-1">Quantidade: {item.quantity}</div>
-                                </div>
-                                <div className="font-bold text-lg text-green-600">
-                                    R$ {(item.price * item.quantity).toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
-                                    })}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="border-t-2 border-gray-200 pt-4">
-                        <div className="flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
-                            <span className="text-xl font-bold text-gray-800">Total:</span>
-                            <span className="text-2xl font-bold text-blue-600">
-                                R$ {totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-
-    const AddCreditCard = () => {
-        const [cardData, setCardData] = useState({
-            number: '',
-            expiry: '',
-            cvv: '',
-            name: ''
-        });
-
-        const formatCardNumber = (value: string) => {
-            const v = value.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
-            const matches = v.match(/\d{4,16}/g);
-            const match = matches && matches[0] || '';
-            const parts = [];
-            for (let i = 0, len = match.length; i < len; i += 4) {
-                parts.push(match.substring(i, i + 4));
-            }
-            if (parts.length) {
-                return parts.join(' ').substring(0, 19);
-            } else {
-                return v.substring(0, 16);
-            }
-        };
-
-        const formatExpiry = (value: string) => {
-            const v = value.replace(/\D/g, '');
-            if (v.length >= 2) {
-                return v.substring(0, 2) + '/' + v.substring(2, 4);
-            }
-            return v;
-        };
-
-        const formatCVV = (value: string) => {
-            return value.replace(/\D/g, '').substring(0, 3);
-        };
-
-        const handleSubmit = () => {
-            handleAddCard(cardData);
-            setCardData({ number: '', expiry: '', cvv: '', name: '' });
-            setSaveCard(false);
-        };
-
-        return (
-            <Dialog open={openAddCreditCard} onOpenChange={setOpenAddCreditCard}>
-                <DialogContent className="md:max-w-screen-md lg:max-w-screen-lg sm:max-w-[425px] xs:max-w-screen-xs">
-                    <DialogHeader>
-                        <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center">
-                            <span className="text-3xl mr-3">💳</span>
-                            Adicionar Cartão de Crédito
-                        </DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-6">
-                        <div>
-                            <label className="text-base font-semibold text-gray-700 mb-2 block">Número do Cartão</label>
-                            <input
-                                type="text"
-                                placeholder="0000 0000 0000 0000"
-                                maxLength={19}
-                                className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
-                                value={cardData.number}
-                                onChange={(e) => {
-                                    const formatted = formatCardNumber(e.target.value);
-                                    setCardData({ ...cardData, number: formatted });
-                                }}
-                            />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-base font-semibold text-gray-700 mb-2 block">Validade</label>
-                                <input
-                                    type="text"
-                                    placeholder="MM/AA"
-                                    maxLength={5}
-                                    className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
-                                    value={cardData.expiry}
-                                    onChange={(e) => {
-                                        const formatted = formatExpiry(e.target.value);
-                                        setCardData({ ...cardData, expiry: formatted });
-                                    }}
-                                />
-                            </div>
-                            <div>
-                                <label className="text-base font-semibold text-gray-700 mb-2 block">CVV</label>
-                                <input
-                                    type="text"
-                                    placeholder="123"
-                                    maxLength={3}
-                                    className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
-                                    value={cardData.cvv}
-                                    onChange={(e) => {
-                                        const formatted = formatCVV(e.target.value);
-                                        setCardData({ ...cardData, cvv: formatted });
-                                    }}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-base font-semibold text-gray-700 mb-2 block">Nome no Cartão</label>
-                            <input
-                                type="text"
-                                placeholder="Nome como está no cartão"
-                                className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
-                                value={cardData.name}
-                                onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
-                            />
-                        </div>
-                        <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                            <input
-                                type="checkbox"
-                                checked={saveCard}
-                                onChange={(e) => setSaveCard(e.target.checked)}
-                                className="w-5 h-5 text-blue-600 border-2 border-blue-300 rounded focus:ring-blue-500"
-                            />
-                            <label className="text-base font-medium text-gray-700 cursor-pointer">
-                                💾 Salvar cartão para futuras compras
-                            </label>
-                        </div>
-
-                        <div className="flex gap-4 pt-4">
-                            <Button
-                                onClick={() => setOpenAddCreditCard(false)}
-                                variant="outline"
-                                className="flex-1 py-3 text-lg font-semibold border-2 border-gray-300 hover:border-gray-400 transition-all"
-                            >
-                                ❌ Cancelar
-                            </Button>
-                            <Button
-                                onClick={() => handleSubmit()}
-                                className="flex-1 py-3 text-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
-                            >
-                                ✅ Adicionar Cartão
-                            </Button>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    }
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
             <Header />
             <Container>
-                <div className="mb-6">
-                    <Button
-                        variant="ghost"
-                        onClick={() => router.push('/cart')}
-                        className="my-4 p-0 text-lg h-auto hover:bg-transparent"
-                    >
-                        <ArrowLeft className="w-4 h-4 mr-2" />
-                        Voltar ao carrinho
-                    </Button>
-                </div>
-                {notification.show && (
+                {currentStep !== 'result' && (
                     <div className="mb-6">
-                        <Alert className={`${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
-                            notification.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
-                                'bg-yellow-50 border-yellow-200 text-yellow-800'
-                            }`}>
-                            {notification.type === 'success' && <CheckCircle className="h-4 w-4" />}
-                            {notification.type === 'error' && <XCircle className="h-4 w-4" />}
-                            {notification.type === 'warning' && <AlertCircle className="h-4 w-4" />}
-                            <AlertDescription className="ml-2">
-                                {notification.message}
-                            </AlertDescription>
-                        </Alert>
+                        <Button
+                            variant="ghost"
+                            onClick={() => router.push('/cart')}
+                            className="my-4 p-0 text-lg h-auto hover:bg-transparent"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Voltar ao carrinho
+                        </Button>
                     </div>
                 )}
-                <div className="grid grid-cols-12 gap-6">
-                    <div className="col-span-12 md:col-span-4">
-                        <CardResume />
+
+                {currentStep !== 'result' && (
+                    <div className="mb-8">
+                        <StepsIndicator steps={steps} currentStep={currentStep} />
                     </div>
-                    <div className="col-span-12 md:col-span-7">
-                        <div className="bg-white rounded-xl border border-gray-200 p-6">
-                            <h1 className="text-2xl font-bold mb-6 text-gray-800 flex items-center">
-                                <span className="w-2 h-8 bg-green-500 rounded-full mr-3"></span>
-                                Método de Pagamento
-                            </h1>
-                            <RadioGroup
-                                value={selectedPaymentMethod}
-                                onValueChange={setSelectedPaymentMethod}
-                                className="flex flex-col gap-4"
-                            >
-                                <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all cursor-pointer">
-                                    <RadioGroupItem value="pix" />
-                                    <div className="flex items-center space-x-3">
-                                        <span className="text-2xl">💳</span>
-                                        <label className="text-lg font-medium text-gray-700 cursor-pointer">PIX</label>
-                                    </div>
-                                </div>
+                )}
 
-                                {currentCard && !savedCards.some(savedCard => savedCard.last4 === currentCard.last4) && (
-                                    <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
-                                        <RadioGroupItem value="current-card" />
-                                        <div className="flex items-center space-x-3">
-                                            <span className="text-2xl">💳</span>
-                                            <label className="text-lg font-medium text-gray-700 cursor-pointer">
-                                                Cartão terminado em {currentCard.last4}
-                                            </label>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {savedCards.map(card => (
-                                    <div key={card.id} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
-                                        <RadioGroupItem value={`saved-${card.id}`} />
-                                        <div className="flex items-center space-x-3">
-                                            <span className="text-2xl">💳</span>
-                                            <label className="text-lg font-medium text-gray-700 cursor-pointer">
-                                                Cartão terminado em {card.last4}
-                                            </label>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
-                                    <RadioGroupItem value="credit" onClick={() => setOpenAddCreditCard(true)} />
-                                    <div className="flex items-center space-x-3">
-                                        <span className="text-2xl">➕</span>
-                                        <label className="text-lg font-medium text-gray-700 cursor-pointer">
-                                            Adicionar Cartão de Crédito
-                                        </label>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all cursor-pointer">
-                                    <RadioGroupItem value="debit" />
-                                    <div className="flex items-center space-x-3">
-                                        <span className="text-2xl">🧾</span>
-                                        <label className="text-lg font-medium text-gray-700 cursor-pointer">Boleto</label>
-                                    </div>
-                                </div>
-                            </RadioGroup>
-
-                            <div className="mt-8">
-                                <Button
-                                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-4 text-lg rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
-                                    onClick={handleFinalizePurchase}
-                                >
-                                    🛒 Finalizar Compra
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                    {renderCurrentStep()}
                 </div>
             </Container>
-            <AddCreditCard />
         </div>
     );
 }
