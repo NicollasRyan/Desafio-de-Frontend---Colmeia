@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { getCurrentUser, mockLogout } from "@/lib/mockAuth";
 import { useCart } from "@/contexts/cartContext";
+import Link from "next/link";
 
 export default function Header() {
     const router = useRouter();
@@ -19,7 +20,7 @@ export default function Header() {
     return (
         <header className="bg-gray-100 py-4">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-                <p className="text-2xl font-bold">Checkout Mock</p>
+                <Link href="/" className="text-2xl font-bold text-black">🛍️ Checkout Mock</Link>
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-4">
                         <button

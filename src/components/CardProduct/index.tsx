@@ -5,8 +5,7 @@ import { useCart } from "@/contexts/cartContext";
 
 export default function CardProduct({ id, name, description, price, image, category, stock }: Product) {
 
-    const { addToCart, isInCart } = useCart();
-    const inCart = isInCart(id);
+    const { addToCart } = useCart();
 
     const handleAddToCart = () => {
         addToCart({
