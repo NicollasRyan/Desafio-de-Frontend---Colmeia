@@ -6,9 +6,10 @@ import { useCart } from "@/contexts/cartContext";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { getCurrentUser, isAuthenticated } from "@/lib/mockAuth";
 
 export default function Checkout() {
@@ -17,11 +18,23 @@ export default function Checkout() {
     const [currentCard, setCurrentCard] = useState<any>(null);
     const [saveCard, setSaveCard] = useState(true);
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('');
+    const [notification, setNotification] = useState<{
+        type: 'success' | 'error' | 'warning';
+        message: string;
+        show: boolean;
+    }>({ type: 'success', message: '', show: false });
 
     const router = useRouter();
 
     const { cartItems, clearCart } = useCart();
     const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+
+    const showNotification = (type: 'success' | 'error' | 'warning', message: string) => {
+        setNotification({ type, message, show: true });
+        setTimeout(() => {
+            setNotification(prev => ({ ...prev, show: false }));
+        }, 4000);
+    };
 
     useEffect(() => {
 
@@ -29,7 +42,7 @@ export default function Checkout() {
         if (!checkAuth) {
             router.push('/login');
         }
-        
+
         const currentUser = getCurrentUser();
         if (currentUser) {
             const userCardsKey = `savedCards_${currentUser.id}`;
@@ -42,7 +55,7 @@ export default function Checkout() {
 
     const handleAddCard = (cardData: any) => {
         if (!cardData.number || !cardData.expiry || !cardData.cvv || !cardData.name) {
-            alert('Por favor, preencha todos os campos');
+            showNotification('error', 'Por favor, preencha todos os campos');
             return;
         }
 
@@ -62,14 +75,17 @@ export default function Checkout() {
                 setSavedCards(updatedCards);
                 const userCardsKey = `savedCards_${currentUser.id}`;
                 localStorage.setItem(userCardsKey, JSON.stringify(updatedCards));
+                showNotification('success', 'Cartão adicionado e salvo com sucesso!');
             }
+        } else {
+            showNotification('success', 'Cartão adicionado com sucesso!');
         }
     };
 
 
     const handleFinalizePurchase = () => {
         if (!selectedPaymentMethod) {
-            alert('Por favor, selecione um método de pagamento');
+            showNotification('warning', 'Por favor, selecione um método de pagamento');
             return;
         }
 
@@ -79,14 +95,16 @@ export default function Checkout() {
 
         if (isCardPayment) {
             if (!currentCard && !savedCards.some(card => selectedPaymentMethod === `saved-${card.id}`)) {
-                alert('Por favor, adicione um cartão de crédito');
+                showNotification('warning', 'Por favor, adicione um cartão de crédito');
                 return;
             }
         }
         clearCart();
-        alert('Compra finalizada com sucesso!');
+        showNotification('success', 'Compra finalizada com sucesso!');
         setCurrentCard(null);
-        router.push('/');
+        setTimeout(() => {
+            router.push('/');
+        }, 2000);
     };
 
 
@@ -281,6 +299,21 @@ export default function Checkout() {
                         Voltar ao carrinho
                     </Button>
                 </div>
+                {notification.show && (
+                    <div className="mb-6">
+                        <Alert className={`${notification.type === 'success' ? 'bg-green-50 border-green-200 text-green-800' :
+                            notification.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' :
+                                'bg-yellow-50 border-yellow-200 text-yellow-800'
+                            }`}>
+                            {notification.type === 'success' && <CheckCircle className="h-4 w-4" />}
+                            {notification.type === 'error' && <XCircle className="h-4 w-4" />}
+                            {notification.type === 'warning' && <AlertCircle className="h-4 w-4" />}
+                            <AlertDescription className="ml-2">
+                                {notification.message}
+                            </AlertDescription>
+                        </Alert>
+                    </div>
+                )}
                 <div className="grid grid-cols-12 gap-6">
                     <div className="col-span-12 md:col-span-4">
                         <CardResume />
