@@ -136,88 +136,90 @@ export function PaymentMethodStep({ onNext, onPrev }: PaymentMethodStepProps) {
       <RadioGroup
         value={selectedMethod}
         onValueChange={setSelectedMethod}
-        className="space-y-4 mb-8"
+        className="space-y-3 sm:space-y-4 mb-6 sm:mb-8"
       >
-        <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all cursor-pointer">
+        <div className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-all cursor-pointer">
           <RadioGroupItem value="pix" />
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">💳</span>
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <span className="text-xl sm:text-2xl">💳</span>
             <div>
-              <label className="text-lg font-medium text-gray-700 cursor-pointer">PIX</label>
-              <p className="text-sm text-gray-500">Pagamento instantâneo</p>
+              <label className="text-base sm:text-lg font-medium text-gray-700 cursor-pointer">PIX</label>
+              <p className="text-xs sm:text-sm text-gray-500">Pagamento instantâneo</p>
             </div>
           </div>
         </div>
 
         {currentCard && !savedCards.some(savedCard => savedCard.last4 === currentCard.last4) && (
-          <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
+          <div className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
             <RadioGroupItem value="current-card" />
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">💳</span>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="text-xl sm:text-2xl">💳</span>
               <div>
-                <label className="text-lg font-medium text-gray-700 cursor-pointer">
+                <label className="text-base sm:text-lg font-medium text-gray-700 cursor-pointer">
                   Cartão terminado em {currentCard.last4}
                 </label>
-                <p className="text-sm text-gray-500">Cartão atual</p>
+                <p className="text-xs sm:text-sm text-gray-500">Cartão atual</p>
               </div>
             </div>
           </div>
         )}
 
         {savedCards.map(card => (
-          <div key={card.id} className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
+          <div key={card.id} className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
             <RadioGroupItem value={`saved-${card.id}`} />
-            <div className="flex items-center space-x-3">
-              <span className="text-2xl">💳</span>
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <span className="text-xl sm:text-2xl">💳</span>
               <div>
-                <label className="text-lg font-medium text-gray-700 cursor-pointer">
+                <label className="text-base sm:text-lg font-medium text-gray-700 cursor-pointer">
                   Cartão terminado em {card.last4}
                 </label>
-                <p className="text-sm text-gray-500">Cartão salvo</p>
+                <p className="text-xs sm:text-sm text-gray-500">Cartão salvo</p>
               </div>
             </div>
           </div>
         ))}
 
-        <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
+        <div className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all cursor-pointer">
           <RadioGroupItem value="credit" onClick={() => setOpenAddCreditCard(true)} />
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">➕</span>
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <span className="text-xl sm:text-2xl">➕</span>
             <div>
-              <label className="text-lg font-medium text-gray-700 cursor-pointer">
-                Adicionar Cartão de Crédito
+              <label className="text-base sm:text-lg font-medium text-gray-700 cursor-pointer">
+                <span className="hidden sm:inline">Adicionar Cartão de Crédito</span>
+                <span className="sm:hidden">Adicionar Cartão</span>
               </label>
-              <p className="text-sm text-gray-500">Novo cartão</p>
+              <p className="text-xs sm:text-sm text-gray-500">Novo cartão</p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all cursor-pointer">
+        <div className="flex items-center space-x-3 p-3 sm:p-4 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all cursor-pointer">
           <RadioGroupItem value="boleto" />
-          <div className="flex items-center space-x-3">
-            <span className="text-2xl">🧾</span>
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <span className="text-xl sm:text-2xl">🧾</span>
             <div>
-              <label className="text-lg font-medium text-gray-700 cursor-pointer">Boleto</label>
-              <p className="text-sm text-gray-500">Vencimento em 3 dias</p>
+              <label className="text-base sm:text-lg font-medium text-gray-700 cursor-pointer">Boleto</label>
+              <p className="text-xs sm:text-sm text-gray-500">Vencimento em 3 dias</p>
             </div>
           </div>
         </div>
       </RadioGroup>
 
-      <div className="flex justify-between pt-6">
+      <div className="flex flex-col sm:flex-row gap-4 sm:justify-between pt-6">
         <Button
           type="button"
           variant="outline"
           onClick={onPrev}
-          className="px-8 py-3 text-lg font-semibold"
+          className="w-full sm:w-auto px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold order-2 sm:order-1"
         >
           ← Voltar
         </Button>
         <Button
           onClick={handleSubmit}
-          className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 text-lg font-semibold"
+          className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold order-1 sm:order-2"
         >
-          Continuar para Revisão →
+          <span className="hidden sm:inline">Continuar para Revisão →</span>
+          <span className="sm:hidden">Continuar →</span>
         </Button>
       </div>
 
@@ -283,21 +285,22 @@ function AddCreditCardDialog({ open, onOpenChange, onAddCard, saveCard, setSaveC
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="md:max-w-screen-md lg:max-w-screen-lg sm:max-w-[425px] xs:max-w-screen-xs">
+      <DialogContent className="w-[95vw] max-w-md mx-auto sm:max-w-lg md:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-gray-800 flex items-center">
-            <span className="text-3xl mr-3">💳</span>
-            Adicionar Cartão de Crédito
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center">
+            <span className="text-2xl sm:text-3xl mr-2 sm:mr-3">💳</span>
+            <span className="hidden sm:inline">Adicionar Cartão de Crédito</span>
+            <span className="sm:hidden">Adicionar Cartão</span>
           </DialogTitle>
         </DialogHeader>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div>
-            <label className="text-base font-semibold text-gray-700 mb-2 block">Número do Cartão</label>
+            <label className="text-sm sm:text-base font-semibold text-gray-700 mb-2 block">Número do Cartão</label>
             <input
               type="text"
               placeholder="0000 0000 0000 0000"
               maxLength={19}
-              className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
+              className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base sm:text-lg"
               value={cardData.number}
               onChange={(e) => {
                 const formatted = formatCardNumber(e.target.value);
@@ -305,14 +308,14 @@ function AddCreditCardDialog({ open, onOpenChange, onAddCard, saveCard, setSaveC
               }}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-base font-semibold text-gray-700 mb-2 block">Validade</label>
+              <label className="text-sm sm:text-base font-semibold text-gray-700 mb-2 block">Validade</label>
               <input
                 type="text"
                 placeholder="MM/AA"
                 maxLength={5}
-                className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
+                className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base sm:text-lg"
                 value={cardData.expiry}
                 onChange={(e) => {
                   const formatted = formatExpiry(e.target.value);
@@ -321,12 +324,12 @@ function AddCreditCardDialog({ open, onOpenChange, onAddCard, saveCard, setSaveC
               />
             </div>
             <div>
-              <label className="text-base font-semibold text-gray-700 mb-2 block">CVV</label>
+              <label className="text-sm sm:text-base font-semibold text-gray-700 mb-2 block">CVV</label>
               <input
                 type="text"
                 placeholder="123"
                 maxLength={3}
-                className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
+                className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base sm:text-lg"
                 value={cardData.cvv}
                 onChange={(e) => {
                   const formatted = formatCVV(e.target.value);
@@ -336,38 +339,38 @@ function AddCreditCardDialog({ open, onOpenChange, onAddCard, saveCard, setSaveC
             </div>
           </div>
           <div>
-            <label className="text-base font-semibold text-gray-700 mb-2 block">Nome no Cartão</label>
+            <label className="text-sm sm:text-base font-semibold text-gray-700 mb-2 block">Nome no Cartão</label>
             <input
               type="text"
               placeholder="Nome como está no cartão"
-              className="w-full p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-lg"
+              className="w-full p-3 sm:p-4 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-base sm:text-lg"
               value={cardData.name}
               onChange={(e) => setCardData({ ...cardData, name: e.target.value })}
             />
           </div>
-          <div className="flex items-center space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-100">
+          <div className="flex items-center space-x-3 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-100">
             <input
               type="checkbox"
               checked={saveCard}
               onChange={(e) => setSaveCard(e.target.checked)}
-              className="w-5 h-5 text-blue-600 border-2 border-blue-300 rounded focus:ring-blue-500"
+              className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 border-2 border-blue-300 rounded focus:ring-blue-500"
             />
-            <label className="text-base font-medium text-gray-700 cursor-pointer">
+            <label className="text-sm sm:text-base font-medium text-gray-700 cursor-pointer">
               💾 Salvar cartão para futuras compras
             </label>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-4">
             <Button
               onClick={() => handleClose(false)}
               variant="outline"
-              className="flex-1 py-3 text-lg font-semibold border-2 border-gray-300 hover:border-gray-400 transition-all"
+              className="w-full sm:flex-1 py-3 text-base sm:text-lg font-semibold border-2 border-gray-300 hover:border-gray-400 transition-all order-2 sm:order-1"
             >
               ❌ Cancelar
             </Button>
             <Button
               onClick={handleSubmit}
-              className="flex-1 py-3 text-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all"
+              className="w-full sm:flex-1 py-3 text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all order-1 sm:order-2"
             >
               ✅ Adicionar Cartão
             </Button>
