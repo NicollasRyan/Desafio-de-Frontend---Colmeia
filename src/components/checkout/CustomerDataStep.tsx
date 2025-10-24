@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getCurrentUser } from "@/lib/mockAuth";
 
-// Zod schema for customer data validation
 const customerDataSchema = z.object({
   name: z.string()
     .min(2, "Nome deve ter pelo menos 2 caracteres")
